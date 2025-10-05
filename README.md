@@ -113,7 +113,7 @@ It turns technical astrophysical data into a **tool for awareness, education, an
 | **Libraries** | Three.js (r128) |
 | **Data APIs** | NASA NEO API, USGS Earthquake API |
 | **Visualization** | 3D orbit simulation using Three.js |
-| **Hosting** | GitHub Pages / Netlify |
+| **Hosting** | Vercel |
 
 ---
 
