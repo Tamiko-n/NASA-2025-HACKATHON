@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asteroid Explorer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        body {
+            background: #000;
+            color: white;
+            overflow-x: hidden;
+        }
+        
+        #container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        #logo {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        
+        #info-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 350px;
+            background: rgba(0, 0, 0, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            z-index: 100;
+            display: none;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 0 30px rgba(0, 100, 255, 0.3);
+        }
+        
+        #info-panel h2 {
+            margin-bottom: 15px;
+            color: #ffcc00;
+            font-size: 22px;
+            border-bottom: 2px solid #ffcc00;
+            padding-bottom: 8px;
+        }
+        
+        #info-panel p {
+            margin-bottom: 12px;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+        
+        .hazardous {
+            color: #ff4444;
+            font-weight: bold;
+            padding: 4px 8px;
+            background: rgba(255, 68, 68, 0.2);
+            border-radius: 4px;
+        }
+        
+        .safe {
+            color: #44ff44;
+            font-weight: bold;
+            padding: 4px 8px;
+            background: rgba(68, 255, 68, 0.2);
+            border-radius: 4px;
+        }
+        
+        #close-info {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            font-size: 18px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #close-info:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 20px;
+            z-index: 1000;
+        }
+        
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        #controls button {
+            background: rgba(0, 100, 255, 0.7);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            margin: 0 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        #controls button:hover {
+            background: rgba(0, 100, 255, 0.9);
+            transform: translateY(-2px);
+        }
+        
+        #controls button.active {
+            background: rgba(255, 204, 0, 0.8);
+            color: #000;
+        }
+
+        /* Future Threats Section */
+        #future-threats {
+            background: linear-gradient(135deg, #1a0a2a 0%, #2a1a4a 100%);
+            padding: 80px 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .threat-content {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .threat-alert {
+            background: rgba(255, 68, 68, 0.1);
+            border: 2px solid rgba(255, 68, 68, 0.3);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 40px;
+            backdrop-filter: blur(10px);
+        }
+
+        .threat-alert h3 {
+            color: #ff4444;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .threat-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stat-card.high-risk {
+            background: rgba(255, 68, 68, 0.2);
+            border-color: rgba(255, 68, 68, 0.4);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #ffcc00;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #e0e0e0;
+            font-size: 1rem;
+        }
+
+        .live-map-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #ff4444, #ff6b00);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(255, 68, 68, 0.3);
+        }
+
+        .live-map-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255, 68, 68, 0.5);
+            background: linear-gradient(135deg, #ff6b00, #ff4444);
+        }
+
+        .map-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        /* Precaution Section */
+        #precautions {
+            background: linear-gradient(135deg, #0a0a2a 0%, #1a1a4a 100%);
+            padding: 80px 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 50px;
+            font-size: 2.5rem;
+            color: #ffcc00;
+            text-shadow: 0 0 20px rgba(255, 204, 0, 0.5);
+        }
+
+        .precaution-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .precaution-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .precaution-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ffcc00, #ff6b00);
+        }
+
+        .precaution-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border-color: #ffcc00;
+        }
+
+        .precaution-card h3 {
+            color: #ffcc00;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+
+        .precaution-card p {
+            color: #e0e0e0;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .precaution-card ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .precaution-card li {
+            padding: 8px 0;
+            color: #e0e0e0;
+            position: relative;
+            padding-left: 25px;
+        }
+
+        .precaution-card li::before {
+            content: '🛡️';
+            position: absolute;
+            left: 0;
+            top: 8px;
+        }
+
+        .emergency {
+            background: rgba(255, 68, 68, 0.1);
+            border-color: rgba(255, 68, 68, 0.3);
+        }
+
+        .emergency::before {
+            background: linear-gradient(90deg, #ff4444, #ff6b00);
+        }
+
+        /* Footer */
+        footer {
+            background: #000;
+            padding: 50px 20px;
+            border-top: 2px solid #ffcc00;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+        }
+
+        .footer-section h3 {
+            color: #ffcc00;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        .footer-section p {
+            color: #b0b0b0;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .team-members {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .team-member {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #ffcc00;
+        }
+
+        .team-member strong {
+            color: #ffcc00;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .team-member span {
+            color: #b0b0b0;
+            font-size: 0.9rem;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #888;
+        }
+
+        /* Scroll down indicator */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            color: #ffcc00;
+            text-align: center;
+            z-index: 100;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 3D Visualization Section -->
+    <div id="container">
+        <div id="logo">Asteroid Explorer</div>
+        
+        <div id="info-panel">
+            <button id="close-info">×</button>
+            <h2 id="asteroid-name">Asteroid Name</h2>
+            <p><strong>Diameter:</strong> <span id="asteroid-diameter">Unknown</span></p>
+            <p><strong>Absolute Magnitude:</strong> <span id="asteroid-magnitude">Unknown</span></p>
+            <p><strong>Orbit Class:</strong> <span id="asteroid-orbit">Unknown</span></p>
+            <p><strong>Orbital Period:</strong> <span id="asteroid-period">Unknown</span></p>
+            <p><strong>Semi-Major Axis:</strong> <span id="asteroid-axis">Unknown</span> AU</p>
+            <p><strong>Eccentricity:</strong> <span id="asteroid-eccentricity">Unknown</span></p>
+            <p><strong>Inclination:</strong> <span id="asteroid-inclination">Unknown</span>°</p>
+            <p><strong>Status:</strong> <span id="asteroid-hazardous" class="safe">Non-Hazardous</span></p>
+        </div>
+        
+        <div id="controls">
+            <button id="speed-slow">Slow Speed</button>
+            <button id="speed-normal" class="active">Normal Speed</button>
+            <button id="speed-fast">Fast Speed</button>
+        </div>
+        
+        <div class="scroll-indicator">
+            ↓ Scroll Down for Future Threats & Safety Information ↓
+        </div>
+        
+        <div id="loading">Loading 3D Environment...</div>
+    </div>
+
+    <!-- Future Threats Section -->
+    <section id="future-threats">
+        <div class="threat-content">
+            <h2 class="section-title">Future Asteroid Threats</h2>
+            
+            <div class="threat-alert">
+                <h3>🚨 IMMEDIATE THREAT MONITORING</h3>
+                <p>NASA and international space agencies are currently tracking several near-Earth objects with close approach trajectories. While most pose no immediate danger, continuous monitoring is essential for planetary defense.</p>
+                
+                <div class="threat-stats">
+                    <div class="stat-card">
+                        <div class="stat-number">1,284</div>
+                        <div class="stat-label">Potentially Hazardous Asteroids</div>
+                    </div>
+                    <div class="stat-card high-risk">
+                        <div class="stat-number">12</div>
+                        <div class="stat-label">Close Approaches This Month</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">98.7%</div>
+                        <div class="stat-label">Large Asteroids Tracked</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">24/7</div>
+                        <div class="stat-label">Global Monitoring</div>
+                    </div>
+                </div>
+
+                <div class="upcoming-events">
+                    <h4 style="color: #ffcc00; margin-bottom: 20px; text-align: center;">Upcoming Close Approaches</h4>
+                    <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                        <p><strong>2025 SZ27</strong> - October 15, 2025 - Miss Distance: 1.18M km</p>
+                        <p><strong>2025 SS3</strong> - October 18, 2025 - Miss Distance: 9.82M km</p>
+                        <p><strong>2025 SG22</strong> - October 22, 2025 - Miss Distance: 15.19M km</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="map-container">
+                <h3 style="color: #ffcc00; margin-bottom: 20px;">Live Global Impact Monitoring</h3>
+                <p style="color: #e0e0e0; margin-bottom: 30px; max-width: 600px; margin-left: auto; margin-right: auto;">
+                    Access real-time data from NASA's Near-Earth Object Program and global seismic monitoring networks. Track current asteroid approaches and recent impact events worldwide.
+                </p>
+                <a href="https://earthquake.usgs.gov/earthquakes/map/?currentFeatureId=us6000rerl&extent=-86.22108,-246.79688&extent=86.17445,263.67188&settings=true" 
+                   target="_blank" 
+                   class="live-map-button">
+                   🗺️ View Live Global Impact Map
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Precaution Section -->
+    <section id="precautions">
+        <h2 class="section-title">Asteroid Impact Safety Guide</h2>
+        <div class="precaution-grid">
+            <div class="precaution-card">
+                <h3>🛰️ Early Detection</h3>
+                <p>Monitor space agencies like NASA and ESA for asteroid tracking updates. Early warning is crucial for preparation.</p>
+                <ul>
+                    <li>Follow official space agency alerts</li>
+                    <li>Monitor Near-Earth Object programs</li>
+                    <li>Stay informed about potential threats</li>
+                </ul>
+            </div>
+
+            <div class="precaution-card">
+                <h3>🏠 Shelter Preparation</h3>
+                <p>Prepare a safe shelter in advance with essential supplies for survival.</p>
+                <ul>
+                    <li>Identify basements or underground shelters</li>
+                    <li>Stock 2 weeks of food and water</li>
+                    <li>Include first aid and emergency kits</li>
+                    <li>Have communication devices ready</li>
+                </ul>
+            </div>
+
+            <div class="precaution-card emergency">
+                <h3>🚨 Immediate Response</h3>
+                <p>What to do when impact is imminent:</p>
+                <ul>
+                    <li>Move to your prepared shelter immediately</li>
+                    <li>Stay away from windows and exterior walls</li>
+                    <li>Listen to emergency broadcasts</li>
+                    <li>Prepare for possible power outages</li>
+                </ul>
+            </div>
+
+            <div class="precaution-card">
+                <h3>🌍 Post-Impact Survival</h3>
+                <p>Survival strategies after an asteroid impact:</p>
+                <ul>
+                    <li>Remain in shelter until officially cleared</li>
+                    <li>Conserve food and water supplies</li>
+                    <li>Monitor air quality before going outside</li>
+                    <li>Follow official recovery instructions</li>
+                </ul>
+            </div>
+
+            <div class="precaution-card">
+                <h3>📡 Communication Plan</h3>
+                <p>Maintain communication during and after the event:</p>
+                <ul>
+                    <li>Have battery-powered radio available</li>
+                    <li>Establish family emergency contacts</li>
+                    <li>Use satellite phones if possible</li>
+                    <li>Follow official information channels</li>
+                </ul>
+            </div>
+
+            <div class="precaution-card">
+                <h3>⚡ Emergency Supplies</h3>
+                <p>Essential items for your emergency kit:</p>
+                <ul>
+                    <li>Water (1 gallon per person per day)</li>
+                    <li>Non-perishable food for 2 weeks</li>
+                    <li>First aid kit and medications</li>
+                    <li>Flashlights and extra batteries</li>
+                    <li>Important documents in waterproof container</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>About Asteroid Explorer</h3>
+                <p>Asteroid Explorer is an interactive educational platform that provides real-time 3D visualization of near-Earth objects and comprehensive safety information for potential asteroid impacts.</p>
+                <p>Our mission is to raise awareness about planetary defense and educate the public about space threats and preparedness.</p>
+            </div>
+
+            <div class="footer-section">
+                <h3>Development Team</h3>
+                <div class="team-members">
+                    <div class="team-member">
+                        <strong>Tamia Naeem</strong>
+                        <span>Project Lead</span>
+                    </div>
+                    <div class="team-member">
+                        <strong>Mustufa Asad</strong>
+                        <span>Data Scientist & Researcher</span>
+                    </div>
+                    <div class="team-member">
+                        <strong>Anusha Fatima</strong>
+                        <span>Frontend Developer & 3D Developer</span>
+                    </div>
+                    <div class="team-member">
+                        <strong>Muskan Shafique</strong>
+                        <span>UI/UX Designer</span>
+                    </div>
+                    <div class="team-member">
+                        <strong>Syeda Hasfa Tariq</strong>
+                        <span>Astronomy Consultant</span>
+                    </div>
+                    <div class="team-member">
+                        <strong>Sadia Naeem</strong>
+                        <span>Safety Research Specialist</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-section">
+                <h3>Data Sources</h3>
+                <p>• NASA Near-Earth Object Program</p>
+                <p>• ESA Space Situational Awareness</p>
+                <p>• JPL Small-Body Database</p>
+                <p>• International Astronomical Union</p>
+                <p>• Planetary Defense Coordination Office</p>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; 2024 Asteroid Explorer. All rights reserved. | Educational Project for Planetary Defense Awareness</p>
+            <p>Data updated regularly from official space agencies</p>
+        </div>
+    </footer>
+
+    <!-- Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <script>
+        // Real asteroid data from your dataset
+        const asteroidData = [
+            {
+                name: "1036 Ganymed (A924 UB)",
+                diameter: "62.74 km",
+                magnitude: "9.18",
+                orbit_class: "AMO",
+                orbital_period: "1589.05 days",
+                semi_major_axis: "2.665 AU",
+                eccentricity: "0.533",
+                inclination: "26.68°",
+                hazardous: false
+            },
+            {
+                name: "433 Eros (A898 PA)",
+                diameter: "35.94 km",
+                magnitude: "10.39",
+                orbit_class: "AMO",
+                orbital_period: "643.12 days",
+                semi_major_axis: "1.458 AU",
+                eccentricity: "0.223",
+                inclination: "10.83°",
+                hazardous: false
+            },
+            {
+                name: "1866 Sisyphus (1972 XA)",
+                diameter: "13.73 km",
+                magnitude: "12.48",
+                orbit_class: "APO",
+                orbital_period: "951.60 days",
+                semi_major_axis: "1.893 AU",
+                eccentricity: "0.538",
+                inclination: "41.21°",
+                hazardous: false
+            },
+            {
+                name: "4954 Eric (1990 SQ)",
+                diameter: "13.23 km",
+                magnitude: "12.56",
+                orbit_class: "AMO",
+                orbital_period: "1034.17 days",
+                semi_major_axis: "2.001 AU",
+                eccentricity: "0.449",
+                inclination: "17.43°",
+                hazardous: false
+            },
+            {
+                name: "1627 Ivar (1929 SH)",
+                diameter: "11.90 km",
+                magnitude: "12.79",
+                orbit_class: "AMO",
+                orbital_period: "928.83 days",
+                semi_major_axis: "1.863 AU",
+                eccentricity: "0.397",
+                inclination: "8.46°",
+                hazardous: false
+            },
+            {
+                name: "2340 Hathor (1976 UA)",
+                diameter: "0.49 km",
+                magnitude: "20.10",
+                orbit_class: "ATE",
+                orbital_period: "0.77 days",
+                semi_major_axis: "0.844 AU",
+                eccentricity: "0.450",
+                inclination: "5.86°",
+                hazardous: true
+            },
+            {
+                name: "1620 Geographos (1951 RA)",
+                diameter: "5.25 km",
+                magnitude: "15.60",
+                orbit_class: "APO",
+                orbital_period: "507.50 days",
+                semi_major_axis: "1.245 AU",
+                eccentricity: "0.335",
+                inclination: "13.34°",
+                hazardous: true
+            },
+            {
+                name: "2101 Adonis (1936 CA)",
+                diameter: "1.09 km",
+                magnitude: "18.70",
+                orbit_class: "APO",
+                orbital_period: "971.50 days",
+                semi_major_axis: "1.874 AU",
+                eccentricity: "0.764",
+                inclination: "1.35°",
+                hazardous: true
+            },
+            {
+                name: "2063 Bacchus (1977 HB)",
+                diameter: "2.15 km",
+                magnitude: "17.10",
+                orbit_class: "APO",
+                orbital_period: "408.70 days",
+                semi_major_axis: "1.078 AU",
+                eccentricity: "0.350",
+                inclination: "9.43°",
+                hazardous: false
+            },
+            {
+                name: "(2025 SZ27)",
+                diameter: "0.12 km",
+                magnitude: "25.19",
+                orbit_class: "NEO",
+                orbital_period: "365.25 days",
+                semi_major_axis: "1.001 AU",
+                eccentricity: "0.150",
+                inclination: "5.20°",
+                hazardous: false
+            }
+        ];
+
+        // Simple OrbitControls implementation
+        class SimpleOrbitControls {
+            constructor(object, domElement) {
+                this.object = object;
+                this.domElement = domElement;
+                
+                this.enabled = true;
+                this.target = new THREE.Vector3();
+                
+                this.minDistance = 5;
+                this.maxDistance = 50;
+                
+                this.rotateSpeed = 1.0;
+                this.zoomSpeed = 1.0;
+                
+                this.spherical = new THREE.Spherical();
+                this.sphericalDelta = new THREE.Spherical();
+                
+                this.scale = 1;
+                this.zoomChanged = false;
+                
+                this.rotateStart = new THREE.Vector2();
+                this.rotateEnd = new THREE.Vector2();
+                this.rotateDelta = new THREE.Vector2();
+                
+                this.zoomStart = new THREE.Vector2();
+                this.zoomEnd = new THREE.Vector2();
+                this.zoomDelta = new THREE.Vector2();
+                
+                this.bindEvents();
+                this.update();
+            }
+            
+            bindEvents() {
+                this.domElement.addEventListener('mousedown', this.onMouseDown.bind(this), false);
+                this.domElement.addEventListener('wheel', this.onMouseWheel.bind(this), false);
+                this.domElement.addEventListener('touchstart', this.onTouchStart.bind(this), false);
+                this.domElement.addEventListener('touchmove', this.onTouchMove.bind(this), false);
+            }
+            
+            onMouseDown(event) {
+                event.preventDefault();
+                
+                if (this.enabled === false) return;
+                
+                this.rotateStart.set(event.clientX, event.clientY);
+                
+                document.addEventListener('mousemove', this.onMouseMove.bind(this), false);
+                document.addEventListener('mouseup', this.onMouseUp.bind(this), false);
+            }
+            
+            onMouseMove(event) {
+                if (this.enabled === false) return;
+                
+                this.rotateEnd.set(event.clientX, event.clientY);
+                this.rotateDelta.subVectors(this.rotateEnd, this.rotateStart);
+                
+                const element = this.domElement;
+                
+                this.rotateLeft(2 * Math.PI * this.rotateDelta.x / element.clientHeight * this.rotateSpeed);
+                this.rotateUp(2 * Math.PI * this.rotateDelta.y / element.clientHeight * this.rotateSpeed);
+                
+                this.rotateStart.copy(this.rotateEnd);
+                
+                this.update();
+            }
+            
+            onMouseUp() {
+                document.removeEventListener('mousemove', this.onMouseMove, false);
+                document.removeEventListener('mouseup', this.onMouseUp, false);
+            }
+            
+            onMouseWheel(event) {
+                if (this.enabled === false) return;
+                
+                event.preventDefault();
+                
+                if (event.deltaY < 0) {
+                    this.zoomOut(this.getZoomScale());
+                } else if (event.deltaY > 0) {
+                    this.zoomIn(this.getZoomScale());
+                }
+                
+                this.update();
+            }
+            
+            onTouchStart(event) {
+                if (this.enabled === false) return;
+                
+                event.preventDefault();
+                
+                switch (event.touches.length) {
+                    case 1:
+                        this.rotateStart.set(event.touches[0].pageX, event.touches[0].pageY);
+                        break;
+                    case 2:
+                        const dx = event.touches[0].pageX - event.touches[1].pageX;
+                        const dy = event.touches[0].pageY - event.touches[1].pageY;
+                        this.zoomStart.set(0, Math.sqrt(dx * dx + dy * dy));
+                        break;
+                }
+            }
+            
+            onTouchMove(event) {
+                if (this.enabled === false) return;
+                
+                event.preventDefault();
+                
+                switch (event.touches.length) {
+                    case 1:
+                        this.rotateEnd.set(event.touches[0].pageX, event.touches[0].pageY);
+                        this.rotateDelta.subVectors(this.rotateEnd, this.rotateStart);
+                        
+                        this.rotateLeft(2 * Math.PI * this.rotateDelta.x / this.domElement.clientHeight * this.rotateSpeed);
+                        this.rotateUp(2 * Math.PI * this.rotateDelta.y / this.domElement.clientHeight * this.rotateSpeed);
+                        
+                        this.rotateStart.copy(this.rotateEnd);
+                        break;
+                    case 2:
+                        const dx = event.touches[0].pageX - event.touches[1].pageX;
+                        const dy = event.touches[0].pageY - event.touches[1].pageY;
+                        this.zoomEnd.set(0, Math.sqrt(dx * dx + dy * dy));
+                        
+                        this.zoomDelta.subVectors(this.zoomEnd, this.zoomStart);
+                        
+                        if (this.zoomDelta.y > 0) {
+                            this.zoomOut(this.getZoomScale());
+                        } else if (this.zoomDelta.y < 0) {
+                            this.zoomIn(this.getZoomScale());
+                        }
+                        
+                        this.zoomStart.copy(this.zoomEnd);
+                        break;
+                }
+                
+                this.update();
+            }
+            
+            rotateLeft(angle) {
+                this.sphericalDelta.theta -= angle;
+            }
+            
+            rotateUp(angle) {
+                this.sphericalDelta.phi -= angle;
+            }
+            
+            zoomIn(zoomScale) {
+                this.scale /= zoomScale;
+            }
+            
+            zoomOut(zoomScale) {
+                this.scale *= zoomScale;
+            }
+            
+            getZoomScale() {
+                return Math.pow(0.95, this.zoomSpeed);
+            }
+            
+            update() {
+                const offset = new THREE.Vector3();
+                const lastPosition = new THREE.Vector3();
+                const lastQuaternion = new THREE.Quaternion();
+                
+                const position = this.object.position;
+                offset.copy(position).sub(this.target);
+                
+                // Apply rotation
+                let theta = Math.atan2(offset.x, offset.z);
+                let phi = Math.atan2(Math.sqrt(offset.x * offset.x + offset.z * offset.z), offset.y);
+                
+                theta += this.sphericalDelta.theta;
+                phi += this.sphericalDelta.phi;
+                
+                // Apply zoom
+                offset.multiplyScalar(this.scale);
+                
+                // Restrict phi to be between desired limits
+                phi = Math.max(0.1, Math.min(Math.PI - 0.1, phi));
+                
+                // Restrict radius to be between desired limits
+                let radius = offset.length();
+                radius = Math.max(this.minDistance, Math.min(this.maxDistance, radius));
+                
+                offset.x = radius * Math.sin(phi) * Math.sin(theta);
+                offset.y = radius * Math.cos(phi);
+                offset.z = radius * Math.sin(phi) * Math.cos(theta);
+                
+                position.copy(this.target).add(offset);
+                
+                this.object.lookAt(this.target);
+                
+                this.sphericalDelta.set(0, 0, 0);
+                this.scale = 1;
+                
+                this.zoomChanged = false;
+            }
+        }
+
+        // Main application code
+        document.addEventListener('DOMContentLoaded', function() {
+            // Scene setup
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x000010);
+            
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            document.getElementById('container').appendChild(renderer.domElement);
+            
+            // Camera controls using our custom SimpleOrbitControls
+            const controls = new SimpleOrbitControls(camera, renderer.domElement);
+            
+            // Enhanced lighting
+            const ambientLight = new THREE.AmbientLight(0x333333, 0.4);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+            directionalLight.position.set(10, 5, 5);
+            scene.add(directionalLight);
+            
+            const pointLight = new THREE.PointLight(0xffffff, 0.8, 100);
+            pointLight.position.set(10, 10, 10);
+            scene.add(pointLight);
+            
+            // Create realistic Earth with texture
+            const earthGeometry = new THREE.SphereGeometry(2, 64, 64);
+            
+            // Create realistic Earth texture using NASA imagery
+            const earthTexture = new THREE.TextureLoader().load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg');
+            const earthBumpMap = new THREE.TextureLoader().load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_normal_2048.jpg');
+            const earthSpecularMap = new THREE.TextureLoader().load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_specular_2048.jpg');
+            
+            const earthMaterial = new THREE.MeshPhongMaterial({ 
+                map: earthTexture,
+                bumpMap: earthBumpMap,
+                bumpScale: 0.05,
+                specularMap: earthSpecularMap,
+                specular: new THREE.Color(0x333333),
+                shininess: 5
+            });
+            
+            const earth = new THREE.Mesh(earthGeometry, earthMaterial);
+            scene.add(earth);
+            
+            // Add clouds
+            const cloudGeometry = new THREE.SphereGeometry(2.05, 64, 64);
+            const cloudTexture = new THREE.TextureLoader().load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_clouds_1024.png');
+            const cloudMaterial = new THREE.MeshPhongMaterial({
+                map: cloudTexture,
+                transparent: true,
+                opacity: 0.4
+            });
+            const clouds = new THREE.Mesh(cloudGeometry, cloudMaterial);
+            scene.add(clouds);
+            
+            // Create asteroid belt with LARGER asteroids for easier clicking
+            const asteroids = [];
+            
+            // Create 10 asteroids with realistic data
+            for (let i = 0; i < 10; i++) {
+                // Scale diameter to visible size - MUCH LARGER for easier clicking
+                const data = asteroidData[i];
+                const diameterKm = parseFloat(data.diameter);
+                // Increased scale for much larger asteroids
+                const scaleSize = Math.max(0.3, Math.min(2.0, diameterKm / 30)); // Much larger scale
+                
+                const asteroidGeometry = new THREE.SphereGeometry(scaleSize, 16, 16);
+                
+                // Create rocky asteroid texture
+                const asteroidMaterial = new THREE.MeshPhongMaterial({ 
+                    color: new THREE.Color().setHSL(
+                        Math.random() * 0.1 + 0.05, 
+                        0.7, 
+                        Math.random() * 0.2 + 0.4
+                    ),
+                    bumpScale: 0.05,
+                    shininess: 10
+                });
+                
+                // Add some surface detail
+                const displacement = new Float32Array(asteroidGeometry.attributes.position.count);
+                for (let j = 0; j < displacement.length; j++) {
+                    displacement[j] = Math.random() * 0.2; // More pronounced surface
+                }
+                asteroidGeometry.setAttribute('displacement', new THREE.BufferAttribute(displacement, 1));
+                
+                const asteroid = new THREE.Mesh(asteroidGeometry, asteroidMaterial);
+                
+                // Position asteroid in a realistic orbit around Earth
+                const distance = 5 + Math.random() * 10; // Slightly more spread out
+                const angle = (i / 10) * Math.PI * 2;
+                asteroid.position.x = Math.cos(angle) * distance;
+                asteroid.position.z = Math.sin(angle) * distance;
+                asteroid.position.y = (Math.random() - 0.5) * 4;
+                
+                // Store asteroid data
+                asteroid.userData = data;
+                asteroid.userData.originalY = asteroid.position.y;
+                asteroid.userData.speed = (Math.random() * 0.002 + 0.001) * 0.3; // Slower speed
+                asteroid.userData.angle = angle;
+                asteroid.userData.distance = distance;
+                asteroid.userData.rotationSpeedX = (Math.random() - 0.5) * 0.005;
+                asteroid.userData.rotationSpeedY = (Math.random() - 0.5) * 0.005;
+                
+                scene.add(asteroid);
+                asteroids.push(asteroid);
+            }
+            
+            // Add stars background
+            const starGeometry = new THREE.BufferGeometry();
+            const starPositions = new Float32Array(5000 * 3);
+            
+            for (let i = 0; i < 15000; i++) {
+                starPositions[i] = (Math.random() - 0.5) * 2000;
+            }
+            
+            starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+            
+            const starMaterial = new THREE.PointsMaterial({
+                color: 0xffffff,
+                size: 1,
+                sizeAttenuation: true
+            });
+            
+            const stars = new THREE.Points(starGeometry, starMaterial);
+            scene.add(stars);
+            
+            // Position camera
+            camera.position.z = 15;
+            camera.position.y = 8;
+            
+            // Speed control
+            let speedMultiplier = 1.0; // Default normal speed
+            
+            function updateSpeedButtons(activeButton) {
+                document.querySelectorAll('#controls button').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                activeButton.classList.add('active');
+            }
+            
+            document.getElementById('speed-slow').addEventListener('click', function() {
+                speedMultiplier = 0.3;
+                updateSpeedButtons(this);
+            });
+            
+            document.getElementById('speed-normal').addEventListener('click', function() {
+                speedMultiplier = 1.0;
+                updateSpeedButtons(this);
+            });
+            
+            document.getElementById('speed-fast').addEventListener('click', function() {
+                speedMultiplier = 2.0;
+                updateSpeedButtons(this);
+            });
+            
+            // Initialize active button
+            updateSpeedButtons(document.getElementById('speed-normal'));
+            
+            // Raycaster for detecting clicks on asteroids
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+            
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+            
+            // Handle asteroid clicks
+            window.addEventListener('click', function(event) {
+                // Calculate mouse position in normalized device coordinates
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+                
+                // Update the raycaster
+                raycaster.setFromCamera(mouse, camera);
+                
+                // Calculate objects intersecting the picking ray
+                const intersects = raycaster.intersectObjects(asteroids);
+                
+                if (intersects.length > 0) {
+                    const asteroid = intersects[0].object;
+                    showAsteroidInfo(asteroid.userData);
+                }
+            });
+            
+            // Show asteroid information
+            function showAsteroidInfo(data) {
+                document.getElementById('asteroid-name').textContent = data.name;
+                document.getElementById('asteroid-diameter').textContent = data.diameter;
+                document.getElementById('asteroid-magnitude').textContent = data.magnitude;
+                document.getElementById('asteroid-orbit').textContent = data.orbit_class;
+                document.getElementById('asteroid-period').textContent = data.orbital_period;
+                document.getElementById('asteroid-axis').textContent = data.semi_major_axis;
+                document.getElementById('asteroid-eccentricity').textContent = data.eccentricity;
+                document.getElementById('asteroid-inclination').textContent = data.inclination;
+                
+                const hazardousElement = document.getElementById('asteroid-hazardous');
+                hazardousElement.textContent = data.hazardous ? 'Potentially Hazardous' : 'Non-Hazardous';
+                hazardousElement.className = data.hazardous ? 'hazardous' : 'safe';
+                
+                document.getElementById('info-panel').style.display = 'block';
+            }
+            
+            // Close info panel
+            document.getElementById('close-info').addEventListener('click', function() {
+                document.getElementById('info-panel').style.display = 'none';
+            });
+            
+            // Remove loading text
+            document.getElementById('loading').style.display = 'none';
+            
+            // Animation loop
+            function animate() {
+                requestAnimationFrame(animate);
+                
+                // Rotate Earth slowly
+                earth.rotation.y += 0.001;
+                clouds.rotation.y += 0.0012; // Slightly faster for clouds
+                
+                // Move asteroids in their orbits with controlled speed
+                asteroids.forEach(asteroid => {
+                    asteroid.userData.angle += asteroid.userData.speed * speedMultiplier;
+                    asteroid.position.x = Math.cos(asteroid.userData.angle) * asteroid.userData.distance;
+                    asteroid.position.z = Math.sin(asteroid.userData.angle) * asteroid.userData.distance;
+                    
+                    // Add slight vertical movement
+                    asteroid.position.y = asteroid.userData.originalY + Math.sin(Date.now() * 0.0005 + asteroid.userData.angle) * 0.8;
+                    
+                    // Rotate asteroid with individual rotation speeds
+                    asteroid.rotation.x += asteroid.userData.rotationSpeedX * speedMultiplier;
+                    asteroid.rotation.y += asteroid.userData.rotationSpeedY * speedMultiplier;
+                });
+                
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            
+            animate();
+        });
+    </script>
+</body>
+</html>
