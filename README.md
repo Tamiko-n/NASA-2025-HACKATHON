@@ -63,7 +63,6 @@ Users can adjust simulation speed, observe asteroid motion, and scroll to access
 **Frontend Stack:**
 - **HTML5, CSS3, JavaScript (ES6)**
 - **Three.js** for 3D visualization
-- **WebGL** for real-time rendering
 
 **Data Sources:**
 - NASA Near-Earth Object (NEO) dataset  
@@ -111,11 +110,9 @@ It turns technical astrophysical data into a **tool for awareness, education, an
 | Category | Tools / Frameworks |
 |-----------|--------------------|
 | **Languages** | HTML, CSS, JavaScript |
-| **Libraries** | Three.js (r128), WebGL |
+| **Libraries** | Three.js (r128) |
 | **Data APIs** | NASA NEO API, USGS Earthquake API |
-| **Design** | Figma (UI/UX mockups), Google Fonts |
 | **Visualization** | 3D orbit simulation using Three.js |
-| **Environment** | Visual Studio Code |
 | **Hosting** | GitHub Pages / Netlify |
 
 ---
@@ -160,18 +157,6 @@ It turns technical astrophysical data into a **tool for awareness, education, an
 
 ---
 
-## 🔹 License
-
-© 2025 **Cosmic Mayhem** — All Rights Reserved  
-Developed for **NASA Space Apps Challenge 2025**  
-Data sources: NASA, ESA, USGS, and JPL databases
-
----
-
 ### 🌠 Live Demo / Preview
 *(Add your hosted link once deployed on GitHub Pages or Netlify)*  
 👉 **[View Cosmic Mayhem Online](https://your-live-demo-link.com)**
-
----
-
-### 📂 Repository Structure
