@@ -148,12 +148,12 @@ It turns technical astrophysical data into a **tool for awareness, education, an
 
 | Name | Role |
 |------|------|
-| **Tamia Naeem** | Project Lead |
+| **Sadia Naeem** | Project Lead |
 | **Mustufa Asad** | Data Scientist & Researcher |
 | **Anusha Fatima** | Frontend Developer & 3D Developer |
 | **Muskan Shafique** | UI/UX Designer |
 | **Syeda Hasfa Tariq** | Astronomy Consultant |
-| **Sadia Naeem** | Safety Research Specialist |
+| **Tamia Naeem** | Safety Research Specialist |
 
 ---
 
